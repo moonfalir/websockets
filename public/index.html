@@ -19,7 +19,8 @@
             <h1 id="waiting-conn">Waiting for other player to join!</h1>
             <h2 id="waiting-choice" hidden>Waiting for other player to choose what to draw!</h2>
             <h3 id="timer" class="col-4 float-left" hidden></h3>
-            <h2 id="hints" class="col-8 float-left" hidden></h2>
+            <h2 id="hints" class="col-6 float-left" hidden></h2>
+            <button id="clear-canvas" class="btn btn-danger col-2" onclick="clearCanvas()" hidden>Clear canvas</button>
             <div id="choose-draw" class="input-group w-100" hidden>
                 <div class="input-group-prepend">
                     <button class="btn btn-primary" onclick="sendChoice()" id="confirmchoice" disabled>Confirm</button>
@@ -44,11 +45,13 @@
             <h2 id="you-score" hidden></h2>
             <h2 id="opponent-score" hidden></h2>
         </div>
-        <div class="w-100 float-left">
+        <div class="w-100 float-left" id="local-group" hidden>
             <span >local</span><video id="local-video" autoplay></video>
+            <button class="btn btn-primary" id="mute-local" onclick="muteLocal()">Unmute</button>
         </div>
-        <div class="w-100 float-left">
+        <div class="w-100 float-left" id="remote-group" hidden>
             <span>remote</span><video id="remote-video" autoplay></video>
+            <button class="btn btn-primary" id="mute-remote" onclick="muteRemote()">Unmute</button>
         </div>
     </div>
 </body>

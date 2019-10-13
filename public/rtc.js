@@ -2,6 +2,11 @@ var pc = new RTCPeerConnection ({
     "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
 });
 var videoAnswerSent = false;
+var localstream;
+var localVid = document.getElementById('local-video');
+var remoteVid = document.getElementById('remote-video');
+var localmutebtn = document.getElementById('mute-local');
+var remotemutebtn = document.getElementById('mute-remote');
 
 pc.onicecandidate = async function(event) {
     if (event.candidate)
@@ -11,9 +16,9 @@ pc.onicecandidate = async function(event) {
 pc.addEventListener('track', gotStream);
 
 async function localVideo(strm) {
-    var vidElement = document.getElementById('local-video');
-    vidElement.srcObject = strm;
-    vidElement.muted = true;
+    document.getElementById("local-group").hidden = false
+    localVid.srcObject = strm;
+    localVid.muted = true;
     for (const track of strm.getTracks()) {
         pc.addTrack(track, strm);
     }
@@ -23,10 +28,10 @@ async function localVideo(strm) {
 }
 
 async function gotStream(event) {
-    var vidElement = document.getElementById('remote-video');
-    if (event.streams[0] !== vidElement.srcObject){
-        vidElement.srcObject = event.streams[0];
-        vidElement.muted = true;
+    if (event.streams[0] !== remoteVid.srcObject){
+        remoteVid.srcObject = event.streams[0];
+        remoteVid.muted = true;
+        document.getElementById("remote-group").hidden = false
         
         if (!videoAnswerSent) {
             navigator.mediaDevices.getUserMedia({audio: true, video: true}).then((strm) => {localVideo(strm)})
@@ -38,6 +43,43 @@ async function gotStream(event) {
     }
 }
 
-function startStreaming() {
-    navigator.mediaDevices.getUserMedia({audio: true, video: true}).then((strm) => {localVideo(strm)})
+async function startStreaming() {
+    localstream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
+    localVideo(localstream);
+}
+
+function stopStreaming() {
+    localVid.srcObject = undefined;
+    videoAnswerSent = false;
+    remoteVid.srcObject = undefined;
+    pc = undefined
+    for (const track of localstream.getTracks()) {
+        track.stop()
+    }
+}
+
+function muteLocal() {
+    var inverse = localVid.muted ? false : true
+    localVid.muted = inverse;
+    if (inverse) {
+        localmutebtn.className = "btn btn-primary"
+        localmutebtn.innerHTML = "Unmute"
+    }
+    else {
+        localmutebtn.className = "btn btn-outline-primary"
+        localmutebtn.innerHTML = "Mute"
+    }
+}
+
+function muteRemote() {
+    var inverse = remoteVid.muted ? false : true
+    remoteVid.muted = inverse;
+    if (inverse) {
+        remotemutebtn.className = "btn btn-primary"
+        remotemutebtn.innerHTML = "Unmute"
+    }
+    else {
+        remotemutebtn.className = "btn btn-outline-primary"
+        remotemutebtn.innerHTML = "Mute"
+    }
 }

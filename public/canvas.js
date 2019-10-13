@@ -41,17 +41,17 @@ function startDraw(evt) {
         return;
     isClicking = true;
     context.beginPath();
-    context.moveTo(evt.offsetX, evt.offsetY);
-    drawhistory.push({type: 'start', coords:{x: evt.offsetX, y: evt.offsetY}})
+    context.moveTo(evt.offsetX / canvas.innerWidth, evt.offsetY / canvas.innerHeight);
+    drawhistory.push({type: 'start', coords:{x: evt.offsetX / canvas.innerWidth, y: evt.offsetY / canvas.innerHeight}})
     ws.send(new Int32Array([evt.offsetX, evt.offsetY]))
 }
 
 function continueDraw(evt) {
     if (!isDrawing || !gameStarted || !wordchosen || !isClicking)
         return;
-    context.lineTo(evt.offsetX, evt.offsetY);
+    context.lineTo(evt.offsetX / canvas.innerWidth, evt.offsetY / canvas.innerHeight);
     context.stroke();
-    drawhistory.push({type: 'line', coords:{x: evt.offsetX, y: evt.offsetY}})
+    drawhistory.push({type: 'line', coords:{x: evt.offsetX / canvas.innerWidth, y: evt.offsetY / canvas.innerHeight}})
     ws.send(new Int32Array([evt.offsetX, evt.offsetY]))
 }
 
@@ -69,16 +69,26 @@ function receivedCoords(data) {
     if (coords[0] === -1 && coords[1] === -1) {
         isDrawing = false;
         context.closePath();
+        drawhistory.push({type: 'stop', coords:{x: -1, y: -1}})
     }
     else {
         if (!isDrawing) {
             isDrawing = true;
             context.beginPath();
             context.moveTo(coords[0], coords[1]);
+            drawhistory.push({type: 'start', coords:{x: coords[0], y: coords[1]}})
         }
         else {
             context.lineTo(coords[0], coords[1]);
             context.stroke();
+            drawhistory.push({type: 'line', coords:{x: coords[0], y: coords[1]}})
         }
     }
+}
+
+function clearCanvas() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    drawhistory = new Array();
+    if (isDrawing)
+        ws.send(JSON.stringify({type: 'game', canvas: 'clear'}))
 }

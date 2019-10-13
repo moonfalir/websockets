@@ -46,6 +46,11 @@ ws.onmessage = async function(msg) {
                 setScore(data.id, data.score);
                 return;
             }
+            if (data.canvas !== undefined) {
+                if (data.canvas === 'clear')
+                    clearCanvas();
+                return;
+            }
         }       
         if (data.id !== undefined) {
             id = data.id;
@@ -81,8 +86,11 @@ function stopGame() {
     document.getElementById("waiting-conn").hidden = false;
     document.getElementById("choose-draw").hidden = true;
     document.getElementById("waiting-choice").hidden = true;
+    document.getElementById("clear-canvas").hidden = true
     youscore = 0
     opponentscore = 0
+    stopStreaming();
+    alert("Please refresh the page to play again")
 }
 
 function sendChoice() {
@@ -100,6 +108,9 @@ function setWordToDraw(value) {
     var word = document.getElementById("hints");
     word.hidden = false;
     word.innerHTML = value;
+
+    if (isDrawing)
+        document.getElementById("clear-canvas").hidden = false
 }
 
 function configGameWordChosen(isChosen) {
