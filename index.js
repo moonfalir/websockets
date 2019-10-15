@@ -67,6 +67,7 @@ webs.on('connection', (ws, req) => {
 
     ws.on('close', () => {
         console.log('closing')
+        // TODO stop timer
         count--;
         var index = clients.findIndex(client => client.sock === ws);
         clients.splice(index, 1);
@@ -135,6 +136,7 @@ function pauseGame(clients) {
 }
 
 function sendHint() {
+    //handle words with 2 characters | don't allow word with 1 letter
     var index = Math.floor(Math.random() * hintsArray.length)
     while(hintsArray[index] !== '_')
         index = Math.floor(Math.random() * hintsArray.length)

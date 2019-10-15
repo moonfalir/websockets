@@ -20,10 +20,10 @@ function resizeCanvas() {
             switch (evt.type) {
                 case 'start':
                     context.beginPath();
-                    context.moveTo(evt.coords.x, evt.coords.y);
+                    context.moveTo(evt.coords.x * canvas.clientWidth, evt.coords.y * canvas.clientHeight);
                     break;
                 case 'line':
-                    context.lineTo(evt.coords.x, evt.coords.y);
+                    context.lineTo(evt.coords.x * canvas.clientWidth, evt.coords.y * canvas.clientHeight);
                     context.stroke();
                     break;
                 case 'stop':
@@ -41,18 +41,20 @@ function startDraw(evt) {
         return;
     isClicking = true;
     context.beginPath();
-    context.moveTo(evt.offsetX / canvas.innerWidth, evt.offsetY / canvas.innerHeight);
-    drawhistory.push({type: 'start', coords:{x: evt.offsetX / canvas.innerWidth, y: evt.offsetY / canvas.innerHeight}})
-    ws.send(new Int32Array([evt.offsetX, evt.offsetY]))
+    var coords = {x: evt.offsetX / canvas.clientWidth, y: evt.offsetY / canvas.clientHeight}
+    context.moveTo(coords.x * canvas.clientWidth, coords.y * canvas.clientHeight);
+    drawhistory.push({type: 'start', coords: coords})
+    ws.send(new Float32Array([coords.x, coords.y]))
 }
 
 function continueDraw(evt) {
     if (!isDrawing || !gameStarted || !wordchosen || !isClicking)
         return;
-    context.lineTo(evt.offsetX / canvas.innerWidth, evt.offsetY / canvas.innerHeight);
+    var coords = {x: evt.offsetX / canvas.clientWidth, y: evt.offsetY / canvas.clientHeight}
+    context.lineTo(coords.x * canvas.clientWidth, coords.y * canvas.clientHeight);
     context.stroke();
-    drawhistory.push({type: 'line', coords:{x: evt.offsetX / canvas.innerWidth, y: evt.offsetY / canvas.innerHeight}})
-    ws.send(new Int32Array([evt.offsetX, evt.offsetY]))
+    drawhistory.push({type: 'line', coords: coords})
+    ws.send(new Float32Array([coords.x, coords.y]))
 }
 
 function stopDraw(evt) {
@@ -61,25 +63,25 @@ function stopDraw(evt) {
     context.closePath();
     isClicking = false;
     drawhistory.push({type: 'stop', coords: {x:-1, y:-1}})
-    ws.send(new Int32Array([-1, -1]))
+    ws.send(new Float32Array([-1, -1]))
 }
 
 function receivedCoords(data) {
-    var coords = new Int32Array(data)
+    var coords = new Float32Array(data)
     if (coords[0] === -1 && coords[1] === -1) {
-        isDrawing = false;
+        isClicking = false;
         context.closePath();
         drawhistory.push({type: 'stop', coords:{x: -1, y: -1}})
     }
     else {
-        if (!isDrawing) {
-            isDrawing = true;
+        if (!isClicking) {
+            isClicking = true;
             context.beginPath();
-            context.moveTo(coords[0], coords[1]);
+            context.moveTo(coords[0] * canvas.clientWidth, coords[1] * canvas.clientHeight);
             drawhistory.push({type: 'start', coords:{x: coords[0], y: coords[1]}})
         }
         else {
-            context.lineTo(coords[0], coords[1]);
+            context.lineTo(coords[0] * canvas.clientWidth, coords[1] * canvas.clientHeight);
             context.stroke();
             drawhistory.push({type: 'line', coords:{x: coords[0], y: coords[1]}})
         }
