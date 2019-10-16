@@ -8,17 +8,26 @@ var youscore = 0;
 var opponentscore = 0;
 var youscorefield = document.getElementById("you-score");
 var opponentscorefield = document.getElementById("opponent-score");
+var msginputcontainer = document.getElementById("msginputcont")
 
 input.onkeyup = function (evt) {
-    if (input.value.length > 0)
+    if (input.value.length > 0) {
         sendbtn.disabled = false
+        if (evt.keyCode === 13) {
+            sendbtn.click();
+        }
+    }
     else
         sendbtn.disabled = true
 }
 
 wordchoice.onkeyup = function (evt) {
-    if (wordchoice.value.length > 0)
+    if (wordchoice.value.length > 0) {
         confirmbtn.disabled = false
+        if (evt.keyCode === 13) {
+            confirmbtn.click();
+        }
+    }
     else
         confirmbtn.disabled = true
 }
@@ -26,7 +35,7 @@ wordchoice.onkeyup = function (evt) {
 function sendMsg(){ 
     ws.send(JSON.stringify({type: 'chat', msg: input.value, name: "Player" + id}))
     var newmsg = document.createElement("p")
-    newmsg.className = "border mb-0 bg-secondary"
+    newmsg.className = "border mb-0 text-secondary"
     newmsg.innerHTML = "Player" + id + ": " + input.value;
     msgcontainer.append(newmsg)
     input.value = "";
@@ -34,10 +43,17 @@ function sendMsg(){
     msgcontainer.scrollTop = msgcontainer.scrollHeight;
 }
 
-function receivedMsg(text) {
+function receivedMsg(sender, msg) {
     var newmsg = document.createElement("p")
-    newmsg.className = "border mb-0 bg-secondary"
-    newmsg.innerHTML = text;
+    var msgcolor = ''
+
+    if (sender.includes("Player"))
+        msgcolor = 'text-primary'
+    else
+        msgcolor ='text-info'
+
+    newmsg.className = "border mb-0 " + msgcolor
+    newmsg.innerHTML = sender + ": " + msg;
     msgcontainer.append(newmsg)
     msgcontainer.scrollTop = msgcontainer.scrollHeight;
 }
@@ -45,10 +61,15 @@ function receivedMsg(text) {
 function setScore(idplayer, score) {
     if (idplayer === id) {
         youscore += score;
-        youscorefield.innerHTML = "You: " + (youscore);
+        youscorefield.innerHTML = youscore;
     }
     else {
         opponentscore += score;
-        opponentscorefield.innerHTML = "Opponent: " + (opponentscore);
+        opponentscorefield.innerHTML = opponentscore;
     }
+}
+
+function resizeChat() {
+    var height = msgcontainer.parentElement.clientHeight - msginputcontainer.clientHeight - 8
+    msgcontainer.style = "height: " + height + "; overflow: scroll;";
 }

@@ -6,15 +6,18 @@ var gameStarted = false;
 var wordchosen = false;
 var isClicking = false;
 var drawhistory = new Array();
+var titlebar = document.getElementById('titlebar')
+var infobar = document.getElementById('infobar')
 
 // resize the canvas to fill browser window dynamically
-window.addEventListener('resize', resizeCanvas, false);
 canvas.addEventListener("mousedown", (evt) => {startDraw(evt); });
 canvas.addEventListener("mousemove", (evt) => {continueDraw(evt); });
 canvas.addEventListener("mouseup", () => { stopDraw(); });
 
 function resizeCanvas() {
         canvas.width = container.clientWidth;
+        var height = titlebar.parentElement.clientHeight - (titlebar.clientHeight + infobar.clientHeight + 5)
+        canvas.height = height
 
         drawhistory.forEach(evt => {
             switch (evt.type) {
@@ -34,7 +37,6 @@ function resizeCanvas() {
             }
         })
 }
-resizeCanvas();
 
 function startDraw(evt) {
     if (!isDrawing || !gameStarted || !wordchosen)

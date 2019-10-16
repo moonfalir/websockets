@@ -1,62 +1,84 @@
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
     <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body>
-    <div id="main-body" class="container w-75 float-left">
-        <div class="w-100 float-left bg-success">
-            <h1 class="float-left">Pictionary!</h1>
-            <h1 class="float-right mr-3" id="playername"></h1>
-        </div>
-        <div id="canvas-container" class="w-100 float-left">
-            <canvas id="canvas" width="100" height="300" style="border:1px solid #000000;"></canvas>
-        </div>
-        <div id="infobar" class="w-100 float-left bg-info mt-2">
-            <h1 id="waiting-conn">Waiting for other player to join!</h1>
-            <h2 id="waiting-choice" hidden>Waiting for other player to choose what to draw!</h2>
-            <h3 id="timer" class="col-4 float-left" hidden></h3>
-            <h2 id="hints" class="col-6 float-left" hidden></h2>
-            <button id="clear-canvas" class="btn btn-danger col-2" onclick="clearCanvas()" hidden>Clear canvas</button>
-            <div id="choose-draw" class="input-group w-100" hidden>
-                <div class="input-group-prepend">
-                    <button class="btn btn-primary" onclick="sendChoice()" id="confirmchoice" disabled>Confirm</button>
+
+<body class="d-flex justify-content-center h-100">
+    <div>
+        <div id="main-body" class="container w-75 float-left h-100">
+            <div id="main-window">
+                <div id="titlebar" class="w-100 float-left bg-success">
+                    <h1 class="float-left">Pictionary!</h1>
+                    <h1 class="float-right mr-3" id="playername"></h1>
                 </div>
-                <input type="text" id="drawchoice" class="form-control" placeholder="Choose a word to draw" aria-label="Drawchoice" aria-describedby="confirmchoice">
-            </div>
-        </div>
-        <div id="chatbox" class="w-100 float-left mt-2">
-            <div class="input-group w-100 float-left">
-                <div class="input-group-prepend">
-                    <button class="btn btn-primary" onclick="sendMsg()" id="sendbtn" disabled>send</button>
+                <div id="canvas-container" class="w-100 float-left flex-grow-1">
+                    <canvas id="canvas" width="100" height="300" style="border:1px solid #000000;"></canvas>
                 </div>
-                <input type="text" id="inputmsg" class="form-control" placeholder="Guess" aria-label="Guess" aria-describedby="sendbtn" disabled>
+                <div id="infobar" class="w-100 float-left bg-info">
+                    <h1 id="waiting-conn">Waiting for other player to join!</h1>
+                    <h2 id="waiting-choice" hidden>Waiting for other player to choose what to draw!</h2>
+                    <h3 id="timer" class="col-4 float-left" hidden></h3>
+                    <h2 id="hints" class="col-6 float-left" hidden></h2>
+                    <button id="clear-canvas" class="btn btn-danger col-2" onclick="clearCanvas()" hidden>Clear</button>
+                    <div id="choose-draw" class="input-group w-100" hidden>
+                        <div class="input-group-prepend">
+                            <button class="btn btn-primary" onclick="sendChoice()" id="confirmchoice"
+                                disabled>Confirm</button>
+                        </div>
+                        <input type="text" id="drawchoice" class="form-control" placeholder="Choose a word to draw"
+                            aria-label="Drawchoice" aria-describedby="confirmchoice">
+                    </div>
+                </div>
             </div>
-            <div id="messages" class="w-100 float-left" style="max-height: 400; overflow: scroll;">
+            <div id="chatbox" class="w-100 float-left">
+                <div id="messages" class="w-100 bg-light" style="overflow: scroll;">
+                </div>
+                <div id="msginputcont" class="input-group w-100 float-left">
+                    <div class="input-group-prepend">
+                        <button class="btn btn-primary" onclick="sendMsg()" id="sendbtn" disabled>send</button>
+                    </div>
+                    <input type="text" id="inputmsg" class="form-control" placeholder="Send message" aria-label="Send message"
+                        aria-describedby="sendbtn" disabled>
+                </div>
             </div>
         </div>
-    </div>
-    <div id="sidebar" class="container w-25 float-left">
-        <div class="w-100 float-left">
-            <h1 class="w-100 float-left">Scores</h1>
-            <h2 id="you-score" hidden></h2>
-            <h2 id="opponent-score" hidden></h2>
-        </div>
-        <div class="w-100 float-left" id="local-group" hidden>
-            <span >local</span><video id="local-video" autoplay></video>
-            <button class="btn btn-primary" id="mute-local" onclick="muteLocal()">Unmute</button>
-        </div>
-        <div class="w-100 float-left" id="remote-group" hidden>
-            <span>remote</span><video id="remote-video" autoplay></video>
-            <button class="btn btn-primary" id="mute-remote" onclick="muteRemote()">Unmute</button>
+        <div id="sidebar" class="container w-25 float-left">
+            <div class="w-100 float-left">
+                <h1 class="w-100 float-left">Scores</h1>
+                <table class="table">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col">You</th>
+                        <th scope="col">Opponent</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <th scope="row" id="you-score">0</th>
+                        <td id="opponent-score">0</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="w-100 float-left" id="local-group">
+                <span>local</span><video class="w-100" id="local-video" poster="user.png" autoplay></video>
+                <button class="btn btn-primary" id="mute-local" onclick="muteLocal()">Unmute</button>
+            </div>
+            <div class="w-100 float-left" id="remote-group">
+                <span>remote</span><video class="w-100" id="remote-video" poster="user.png" autoplay></video>
+                <button class="btn btn-primary" id="mute-remote" onclick="muteRemote()">Unmute</button>
+            </div>
         </div>
     </div>
 </body>
-<script src="main.js"></script>
 <script src="rtc.js"></script>
 <script src="canvas.js"></script>
 <script src="chat.js"></script>
+<script src="main.js"></script>
+
 </html>

@@ -1,0 +1,5 @@
+- UI afwerken (mooi maken en gebruiksvriendelijk)
+- Lobby systeem toevoegen (landing page + lobby page)
+- Lobby mss uitbreiden voor 3 - 4 spelers
+- chat systeem uitbreiden voor gewone communicatie als webcam + audio niet werkt
+- Afronden spel (wincodities + redirect naar landing page)

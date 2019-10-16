@@ -1,0 +1,11 @@
+#main-window{
+    height: 60%;
+}
+
+#chatbox{
+    height: 40%;
+}
+
+#sidebar {
+    max-width: 300px;
+}

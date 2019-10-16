@@ -14,7 +14,7 @@ ws.onmessage = async function(msg) {
             return;
         }
         if (data.type && data.type === 'chat') {
-            receivedMsg(data.name + ": " +data.msg)
+            receivedMsg(data.name, data.msg)
             return;
         }
         if (data.type && data.type === 'game') {
@@ -79,6 +79,7 @@ function startGame() {
     setScore(2, 0);
     youscorefield.hidden = false;
     opponentscorefield.hidden = false;
+    input.disabled = false;
 }
 
 function stopGame() {
@@ -86,7 +87,9 @@ function stopGame() {
     document.getElementById("waiting-conn").hidden = false;
     document.getElementById("choose-draw").hidden = true;
     document.getElementById("waiting-choice").hidden = true;
-    document.getElementById("clear-canvas").hidden = true
+    document.getElementById("clear-canvas").hidden = true;
+    timer.hidden = true;
+    document.getElementById("hints").hidden = true;
     youscore = 0
     opponentscore = 0
     stopStreaming();
@@ -116,12 +119,17 @@ function setWordToDraw(value) {
 function configGameWordChosen(isChosen) {
     if (isChosen) {
         wordchosen = true
-        if (!isDrawing) 
-            input.disabled = false;
     }
     else {
         wordchosen = false;
-        input.disabled = true;
+        document.getElementById("clear-canvas").hidden = true
         startGame();
     }
 }
+
+function resize() {
+    resizeCanvas();
+    resizeChat();
+}
+window.addEventListener('resize', resize, false);
+resize();

@@ -68,6 +68,7 @@ webs.on('connection', (ws, req) => {
     ws.on('close', () => {
         console.log('closing')
         // TODO stop timer
+        clearInterval(timerId);
         count--;
         var index = clients.findIndex(client => client.sock === ws);
         clients.splice(index, 1);
