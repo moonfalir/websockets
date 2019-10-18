@@ -1,6 +1,15 @@
 var ws = new WebSocket('ws://' + window.location.hostname + ':9007')
 ws.binaryType = 'arraybuffer';
+var splitpath = window.location.pathname.split("/");
 var id = -1;
+
+ws.onopen = async function(msg) {
+    ws.send(JSON.stringify({type: 'room', roomnr: splitpath[splitpath.length - 1], action: 'join'}))
+}
+
+ws.onclose = function(msg) {
+    stopGame();
+}
 
 ws.onmessage = async function(msg) {
     if (typeof msg.data === 'string') {
@@ -22,7 +31,7 @@ ws.onmessage = async function(msg) {
                 if (data.start)
                     startGame();
                 else
-                    stopGame();
+                    endGame();
                 return;
             }
             if (data.drawing !== undefined){
@@ -50,6 +59,9 @@ ws.onmessage = async function(msg) {
                 if (data.canvas === 'clear')
                     clearCanvas();
                 return;
+            }
+            if (data.round !== undefined) {
+                document.getElementById("rounds").innerHTML = "Round: " + data.round + "/5"
             }
         }       
         if (data.id !== undefined) {
@@ -83,17 +95,22 @@ function startGame() {
 }
 
 function stopGame() {
-    gameStarted = false;
-    document.getElementById("waiting-conn").hidden = false;
-    document.getElementById("choose-draw").hidden = true;
-    document.getElementById("waiting-choice").hidden = true;
-    document.getElementById("clear-canvas").hidden = true;
-    timer.hidden = true;
-    document.getElementById("hints").hidden = true;
-    youscore = 0
-    opponentscore = 0
-    stopStreaming();
-    alert("Please refresh the page to play again")
+    window.location.href = 'http://localhost:9007/';
+}
+
+function endGame() {
+    if (parseInt(youscorefield.innerHTML) > parseInt(opponentscorefield.innerHTML))
+        alert("You won with a score of " + youscorefield.innerHTML)
+    else {
+        if (parseInt(opponentscorefield.innerHTML) > parseInt(youscorefield.innerHTML))
+            alert("You lost with a score of " + youscorefield.innerHTML)
+        else
+            alert("It's a draw with a score of " + youscorefield.innerHTML)
+    }
+
+    setTimeout(function() {
+        window.location.href = window.location.host
+    }, 5000)
 }
 
 function sendChoice() {
