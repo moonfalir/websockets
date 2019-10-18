@@ -67,12 +67,14 @@
                 </table>
             </div>
             <div class="w-100 float-left" id="local-group">
-                <span>local</span><video class="w-100" id="local-video" poster="/user.png" autoplay></video>
-                <button class="btn btn-primary" id="mute-local" onclick="muteLocal()">Unmute</button>
+                <h3 class="text-center w-100 bg-light float-left">You</span>
+                <video class="w-100 float-left" id="local-video" poster="/user.png" autoplay></video>
+                <button class="btn btn-primary float-left w-100" id="mute-local" onclick="muteLocal()">Unmute</button>
             </div>
             <div class="w-100 float-left" id="remote-group">
-                <span>remote</span><video class="w-100" id="remote-video" poster="/user.png" autoplay></video>
-                <button class="btn btn-primary" id="mute-remote" onclick="muteRemote()">Unmute</button>
+                <h3 class="text-center w-100 bg-light float-left">Opponent</span>
+                <video class="w-100 float-left" id="remote-video" poster="/user.png" autoplay></video>
+                <button class="btn btn-primary float-left w-100" id="mute-remote" onclick="muteRemote()">Unmute</button>
             </div>
         </div>
     </div>

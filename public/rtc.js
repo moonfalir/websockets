@@ -34,6 +34,7 @@ async function gotStream(event) {
         document.getElementById("remote-group").hidden = false
         
         if (!videoAnswerSent) {
+            //TODO catch errors
             navigator.mediaDevices.getUserMedia({audio: true, video: true}).then((strm) => {localVideo(strm)})
             var answer = await pc.createAnswer()
             await pc.setLocalDescription(answer);
@@ -44,6 +45,7 @@ async function gotStream(event) {
 }
 
 async function startStreaming() {
+    //catch errors
     localstream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
     localVideo(localstream);
 }
@@ -62,11 +64,11 @@ function muteLocal() {
     var inverse = localVid.muted ? false : true
     localVid.muted = inverse;
     if (inverse) {
-        localmutebtn.className = "btn btn-primary"
+        localmutebtn.className = "btn btn-primary float-left w-100"
         localmutebtn.innerHTML = "Unmute"
     }
     else {
-        localmutebtn.className = "btn btn-outline-primary"
+        localmutebtn.className = "btn float-left w-100 btn-outline-primary"
         localmutebtn.innerHTML = "Mute"
     }
 }
@@ -75,11 +77,11 @@ function muteRemote() {
     var inverse = remoteVid.muted ? false : true
     remoteVid.muted = inverse;
     if (inverse) {
-        remotemutebtn.className = "btn btn-primary"
+        remotemutebtn.className = "btn btn-primary float-left w-100"
         remotemutebtn.innerHTML = "Unmute"
     }
     else {
-        remotemutebtn.className = "btn btn-outline-primary"
+        remotemutebtn.className = "btn float-left w-100 btn-outline-primary"
         remotemutebtn.innerHTML = "Mute"
     }
 }

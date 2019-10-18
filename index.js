@@ -226,5 +226,5 @@ function sendEndGame(room) {
 
 //start our server
 server.listen(9007, () => {
-    console.log(`Server started on port ${server.address().port} :)`);
+    console.log(`Server started on port ${server.address().port}`);
 });
