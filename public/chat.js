@@ -1,9 +1,14 @@
+//Chat message field
 var input = document.getElementById("inputmsg")
-var wordchoice = document.getElementById("drawchoice")
-var msgcontainer = document.getElementById("messages")
 var sendbtn = document.getElementById("sendbtn")
+//Word to draw input field
+var wordchoice = document.getElementById("drawchoice")
 var confirmbtn = document.getElementById("confirmchoice")
+//Container for chat messages
+var msgcontainer = document.getElementById("messages")
+//timer field
 var timer = document.getElementById("timer")
+//
 var youscore = 0;
 var opponentscore = 0;
 var youscorefield = document.getElementById("you-score");
@@ -11,8 +16,10 @@ var opponentscorefield = document.getElementById("opponent-score");
 var msginputcontainer = document.getElementById("msginputcont")
 
 input.onkeyup = function (evt) {
+    //Keep send button disabled until there is atleast 1 letter
     if (input.value.length > 0) {
         sendbtn.disabled = false
+        //On hitting enter, send message
         if (evt.keyCode === 13) {
             sendbtn.click();
         }
@@ -32,6 +39,7 @@ wordchoice.onkeyup = function (evt) {
         confirmbtn.disabled = true
 }
 
+//Send message to other client and display in message container
 function sendMsg(){ 
     ws.send(JSON.stringify({type: 'chat', msg: input.value, name: "Player" + id}))
     var newmsg = document.createElement("p")
@@ -42,7 +50,7 @@ function sendMsg(){
     sendbtn.disabled = true
     msgcontainer.scrollTop = msgcontainer.scrollHeight;
 }
-
+//display received message in container
 function receivedMsg(sender, msg) {
     var newmsg = document.createElement("p")
     var msgcolor = ''
@@ -58,6 +66,8 @@ function receivedMsg(sender, msg) {
     msgcontainer.scrollTop = msgcontainer.scrollHeight;
 }
 
+
+//Increase the score of the guesser
 function setScore(idplayer, score) {
     if (idplayer === id) {
         youscore += score;

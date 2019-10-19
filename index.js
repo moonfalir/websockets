@@ -32,10 +32,11 @@ var rooms = new Array();
 //initialize the WebSocket server instance
 const webs = new WebSocket.Server({ server });
 
+//Create room for 2 players
 function createRoom() {
     var room = {
         clients: new Array(),
-        count: 0,
+        counter: 0,
         drawId: '',
         wordToGuess: '',
         wordArray: new Array(),
@@ -48,6 +49,7 @@ function createRoom() {
     return id;
 }
 
+//Get list of rooms
 function getRooms() {
     var room_info = new Array();
     rooms.forEach(function(room, index) {
@@ -70,6 +72,7 @@ webs.on('connection', (ws, req) => {
             }
             if (detMsg.type === 'chat') {
                 room.clients.find(client => client.conn_info !== conn_info).sock.send(message)
+                //Check if answer is correct
                 if (detMsg.msg !== undefined && detMsg.msg === room.wordToGuess) {
                     clearInterval(room.timerId);
                     sendScore(room);
@@ -81,6 +84,7 @@ webs.on('connection', (ws, req) => {
                 }
             }
             if (detMsg.type == 'game') {
+                //Set word that will be drawn and start round
                 if (detMsg.wordchoice !== undefined){
                     room.wordToGuess = detMsg.wordchoice
                     room.wordArray = room.wordToGuess.split("")
@@ -95,6 +99,7 @@ webs.on('connection', (ws, req) => {
                 }
             }
             if (detMsg.type == 'room') {
+                //Add client to room
                 if (detMsg.action !== undefined && detMsg.action === 'join') {
                     rooms[detMsg.roomnr].clients.push({conn_info: req.connection.remoteAddress + "_" + req.connection.remotePort, sock: ws})
                     var id = rooms[detMsg.roomnr].clients.length;
@@ -116,6 +121,7 @@ webs.on('connection', (ws, req) => {
 
     ws.on('close', () => {
         const index = findRoomIndex(req.connection.remoteAddress + "_" + req.connection.remotePort);
+        //if there is other user in room
         if (index > -1 && rooms[index].clients.length > 1) {
             if (rooms[index].timerId !== undefined)
                 clearInterval(rooms[index].timerId);
@@ -123,20 +129,25 @@ webs.on('connection', (ws, req) => {
             rooms[index].clients.splice(clientindex, 1);
             rooms[index].clients[0].sock.close()
         }
-        rooms.splice(index, 1);
+        //Remove room
+        if (index > -1)
+            rooms.splice(index, 1);
     })
 });
 
+//Find room where client is in
 function findRoomIndex(client_conn_info) {
     return rooms.findIndex(room => room.clients.findIndex(client => client.conn_info === client_conn_info) > -1);
 }
 
+//Send round information
 function sendRoundInfo(room) {
     room.clients.forEach(e => {
         e.sock.send(JSON.stringify({type: "game", round: room.round}))
     })
 }
 
+//Start a game
 function sendStart(roomnr) {
     const room = rooms[roomnr];
     sendRoundInfo(room);
@@ -145,58 +156,66 @@ function sendStart(roomnr) {
     })
 }
 
+//Send role to client
 function sendDrawerGuesserInfo(sock, isdrawing){
     sock.send(JSON.stringify({type: "game", drawing: isdrawing}))
 }
 
+//Send gained score to clients
 function sendScore(room) {
     var id = room.drawId === room.clients[0].conn_info ? 2 : 1;
     room.clients.forEach(e => {
-        e.sock.send(JSON.stringify({type: "game", score: counter, id: id}))
+        e.sock.send(JSON.stringify({type: "game", score: room.counter, id: id}))
     })
 }
 
+//Send timer information to clients
 function sendTimerInfo(room) {
-    // repeat with the interval of 1 second
-    var counter = 121
+    room.counter = 121
     var seconds = ""
     room.clients.forEach(cl => {
         cl.sock.send(JSON.stringify({type: "game", wordchosen: true}))
     })
-    var halftime = Math.floor(counter / 2);
+    //At half time remaining, start sending hints till 50% of letters are given
+    var halftime = Math.floor(room.counter / 2);
     var hintinterval = Math.floor(halftime  / Math.floor(room.hintsArray.length / 2))
     room.timerId = setInterval(() => {
-        counter--
-        if (counter <= halftime && counter > 0 && (counter % hintinterval) === 0)
+        room.counter--
+        //Send a new letter every interval
+        if (room.counter <= halftime && room.counter > 0 && (room.counter % hintinterval) === 0)
             sendHint(room);
-        if (((counter % 60) + "").length < 2)
-            seconds = "0" + (counter % 60)
+        if (((room.counter % 60) + "").length < 2)
+            seconds = "0" + (room.counter % 60)
         else
-            seconds = (counter % 60) + ""
+            seconds = (room.counter % 60) + ""
         room.clients.forEach(cl => {
-            cl.sock.send(JSON.stringify({type: "game", timer: Math.floor(counter / 60) + ":" + seconds}))
+            cl.sock.send(JSON.stringify({type: "game", timer: Math.floor(room.counter / 60) + ":" + seconds}))
         })
     }, 1000);
 
-    // after 120 seconds stop
+    // after timer expires stop round
     setTimeout(() => { 
-        clearInterval(room.timerId); 
-        room.clients.forEach(e => {
-            e.sock.send(JSON.stringify({type: "chat", msg: room.wordToGuess + " was the word to guess!", name: "Game"}))
-        })
-        switchRoles(room);
-        pauseGame(room.clients);
-    }, (counter + 1) * 1000);
+        clearInterval(room.timerId);
+        if (room.clients.length > 2) {
+            room.clients.forEach(e => {
+                e.sock.send(JSON.stringify({type: "chat", msg: room.wordToGuess + " was the word to guess!", name: "Game"}))
+            })
+            switchRoles(room);
+            pauseGame(room.clients);
+        }
+    }, (room.counter + 1) * 1000);
 }
 
+// pause game to wait for a new word to be drawn
 function pauseGame(clients) {
     clients.forEach(cl => {
         cl.sock.send(JSON.stringify({type: "game", wordchosen: false}))
     })
 }
 
+//Send a hint to the guesser
 function sendHint(room) {
-    //handle words with 2 characters | don't allow word with 1 letter
+    //Select a letter that hasn't been picked yet
     var index = Math.floor(Math.random() * room.hintsArray.length)
     while(room.hintsArray[index] !== '_')
         index = Math.floor(Math.random() * room.hintsArray.length)
@@ -204,12 +223,15 @@ function sendHint(room) {
     room.clients.find(client => client.conn_info !== room.drawId).sock.send(JSON.stringify({type:'game', wordchoice: room.hintsArray}))
 }
 
+//Switch roles of clients
 function switchRoles(room) {
     if (room.drawId === room.clients[0].conn_info)
         room.drawId = room.clients[1].conn_info 
     else {
         room.drawId = room.clients[0].conn_info;
+        //player1's turn again, increase round
         room.round += 1;
+        //stop when 5 rounds are done
         if (room.round < 6)
             sendRoundInfo(room);
         else
@@ -220,13 +242,14 @@ function switchRoles(room) {
     })
 }
 
+//End current game
 function sendEndGame(room) {
     room.clients.forEach(cl => {
         cl.sock.send(JSON.stringify({type: "game", start: false}))
     })
 }
 
-//start our server
+//start server
 server.listen(9007, () => {
     console.log(`Server started on port ${server.address().port}`);
 });

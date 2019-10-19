@@ -4,7 +4,6 @@ var pc = new RTCPeerConnection ({
 var localstream;
 var localVid = document.getElementById('local-video');
 var remoteVid = document.getElementById('remote-video');
-var localmutebtn = document.getElementById('mute-local');
 var remotemutebtn = document.getElementById('mute-remote');
 
 pc.onicecandidate = async function(event) {
@@ -14,6 +13,7 @@ pc.onicecandidate = async function(event) {
 
 pc.addEventListener('track', gotStream);
 
+//Display local stream and notify other client
 async function localVideo(strm) {
     document.getElementById("local-group").hidden = false
     localVid.srcObject = strm;
@@ -26,6 +26,7 @@ async function localVideo(strm) {
     await ws.send(JSON.stringify({type: 'ice', id: id, offer: offer}))
 }
 
+//Display remote stream and send answer to other client
 async function gotStream(event) {
     if (event.streams[0] !== remoteVid.srcObject){
         remoteVid.srcObject = event.streams[0];
@@ -38,20 +39,19 @@ async function gotStream(event) {
     }
 }
 
+//Get audio/video stream
 async function startStreaming() {
     //catch errors
     try {
         localstream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
         localVideo(localstream);
         document.getElementById("call-remote").hidden = true;
-        document.getElementById("mute-local").hidden = false;
     } catch(err) {
         console.log("Could not retrieve video and audio stream");
         try {
             localstream = await navigator.mediaDevices.getUserMedia({audio: true})
             localVideo(localstream);
             document.getElementById("call-remote").hidden = true;
-            document.getElementById("mute-local").hidden = false;
         } catch(err2) {
             console.log("Could not retrieve audio stream")
             document.getElementById("call-remote").disabled = true;
@@ -59,19 +59,7 @@ async function startStreaming() {
     }
 }
 
-function muteLocal() {
-    var inverse = localVid.muted ? false : true
-    localVid.muted = inverse;
-    if (inverse) {
-        localmutebtn.className = "btn btn-primary float-left w-100"
-        localmutebtn.innerHTML = "Unmute"
-    }
-    else {
-        localmutebtn.className = "btn float-left w-100 btn-outline-primary"
-        localmutebtn.innerHTML = "Mute"
-    }
-}
-
+//Mute remote stream and display correct button
 function muteRemote() {
     var inverse = remoteVid.muted ? false : true
     remoteVid.muted = inverse;

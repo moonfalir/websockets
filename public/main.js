@@ -1,8 +1,9 @@
-var ws = new WebSocket('ws://' + window.location.hostname + ':9007')
+var ws = new WebSocket('wss://' + window.location.hostname + ':8107')
 ws.binaryType = 'arraybuffer';
 var splitpath = window.location.pathname.split("/");
 var id = -1;
 
+//Send join message to server
 ws.onopen = async function(msg) {
     ws.send(JSON.stringify({type: 'room', roomnr: splitpath[splitpath.length - 1], action: 'join'}))
 }
@@ -73,6 +74,7 @@ ws.onmessage = async function(msg) {
         receivedCoords(msg.data);
 }
 
+//prepare game, give control to users
 function startGame() {
     document.getElementById("call-remote").disabled = false;
     gameStarted = true;
@@ -93,25 +95,49 @@ function startGame() {
     input.disabled = false;
 }
 
+//If game ends, redirect to home page
 function stopGame() {
-    window.location.href = 'http://localhost:9007/';
+    window.location.href = 'https://' + window.location.host;
 }
 
+//Ends game, shows winner/loser message
 function endGame() {
-    if (parseInt(youscorefield.innerHTML) > parseInt(opponentscorefield.innerHTML))
-        alert("You won with a score of " + youscorefield.innerHTML)
+    if (parseInt(youscorefield.innerHTML) > parseInt(opponentscorefield.innerHTML)) {
+        var alertcont = document.createElement("div");
+        alertcont.id = "alert";
+        alertcont.className = "alert alert-success";
+        var alertmsg = document.createElement("h3");
+        alertmsg.innerHTML = "You won with a score of " + youscorefield.innerHTML;
+        alertcont.appendChild(alertmsg);
+        document.body.appendChild(alertcont);
+    }
     else {
-        if (parseInt(opponentscorefield.innerHTML) > parseInt(youscorefield.innerHTML))
-            alert("You lost with a score of " + youscorefield.innerHTML)
-        else
-            alert("It's a draw with a score of " + youscorefield.innerHTML)
+        if (parseInt(opponentscorefield.innerHTML) > parseInt(youscorefield.innerHTML)) {
+            var alertcont = document.createElement("div");
+            alertcont.id = "alert";
+            alertcont.className = "alert alert-warning";
+            var alertmsg = document.createElement("h3")
+            alertmsg.innerHTML = "Your opponent won with a score of " + opponentscorefield.innerHTML
+            alertcont.appendChild(alertmsg);
+            document.body.appendChild(alertcont);
+        }
+        else{
+            var alertcont = document.createElement("div");
+            alertcont.id = "alert";
+            alertcont.className = "alert alert-primary";
+            var alertmsg = document.createElement("h3")
+            alertmsg.innerHTML = "It's a draw with a score of " + opponentscorefield.innerHTML
+            alertcont.appendChild(alertmsg);
+            document.body.appendChild(alertcont);
+        }
     }
 
     setTimeout(function() {
-        window.location.href = window.location.host
+        stopGame();
     }, 5000)
 }
 
+//Send word that will be drawn
 function sendChoice() {
     var choice = wordchoice.value
     ws.send(JSON.stringify({type: 'game', wordchoice: choice}))
@@ -119,6 +145,7 @@ function sendChoice() {
     setWordToDraw(choice);
 }
 
+//Set word to draw, guesser only see underscores
 function setWordToDraw(value) {
     document.getElementById("waiting-choice").hidden = true;
     document.getElementById("choose-draw").hidden = true;
