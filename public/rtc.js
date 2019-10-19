@@ -1,7 +1,6 @@
 var pc = new RTCPeerConnection ({
     "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
 });
-var videoAnswerSent = false;
 var localstream;
 var localVid = document.getElementById('local-video');
 var remoteVid = document.getElementById('remote-video');
@@ -33,30 +32,30 @@ async function gotStream(event) {
         remoteVid.muted = true;
         document.getElementById("remote-group").hidden = false
         
-        if (!videoAnswerSent) {
-            //TODO catch errors
-            navigator.mediaDevices.getUserMedia({audio: true, video: true}).then((strm) => {localVideo(strm)})
-            var answer = await pc.createAnswer()
-            await pc.setLocalDescription(answer);
-            await ws.send(JSON.stringify({type: 'ice', id: id, offer: answer}))
-            videoAnswerSent = true;
-        }
+        var answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer);
+        await ws.send(JSON.stringify({type: 'ice', id: id, offer: answer}))
     }
 }
 
 async function startStreaming() {
     //catch errors
-    localstream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
-    localVideo(localstream);
-}
-
-function stopStreaming() {
-    localVid.srcObject = undefined;
-    videoAnswerSent = false;
-    remoteVid.srcObject = undefined;
-    pc = undefined
-    for (const track of localstream.getTracks()) {
-        track.stop()
+    try {
+        localstream = await navigator.mediaDevices.getUserMedia({audio: true, video: true})
+        localVideo(localstream);
+        document.getElementById("call-remote").hidden = true;
+        document.getElementById("mute-local").hidden = false;
+    } catch(err) {
+        console.log("Could not retrieve video and audio stream");
+        try {
+            localstream = await navigator.mediaDevices.getUserMedia({audio: true})
+            localVideo(localstream);
+            document.getElementById("call-remote").hidden = true;
+            document.getElementById("mute-local").hidden = false;
+        } catch(err2) {
+            console.log("Could not retrieve audio stream")
+            document.getElementById("call-remote").disabled = true;
+        }
     }
 }
 

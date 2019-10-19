@@ -116,14 +116,14 @@ webs.on('connection', (ws, req) => {
 
     ws.on('close', () => {
         const index = findRoomIndex(req.connection.remoteAddress + "_" + req.connection.remotePort);
-        if (index > -1) {
+        if (index > -1 && rooms[index].clients.length > 1) {
             if (rooms[index].timerId !== undefined)
                 clearInterval(rooms[index].timerId);
             var clientindex = rooms[index].clients.findIndex(client => client.sock === ws);
             rooms[index].clients.splice(clientindex, 1);
             rooms[index].clients[0].sock.close()
-            rooms.splice(index, 1);
         }
+        rooms.splice(index, 1);
     })
 });
 
@@ -158,14 +158,16 @@ function sendScore(room) {
 
 function sendTimerInfo(room) {
     // repeat with the interval of 1 second
-    counter = 121
+    var counter = 121
     var seconds = ""
     room.clients.forEach(cl => {
         cl.sock.send(JSON.stringify({type: "game", wordchosen: true}))
     })
+    var halftime = Math.floor(counter / 2);
+    var hintinterval = Math.floor(halftime  / Math.floor(room.hintsArray.length / 2))
     room.timerId = setInterval(() => {
         counter--
-        if (counter === 80 || counter === 40)
+        if (counter <= halftime && counter > 0 && (counter % hintinterval) === 0)
             sendHint(room);
         if (((counter % 60) + "").length < 2)
             seconds = "0" + (counter % 60)
@@ -179,11 +181,11 @@ function sendTimerInfo(room) {
     // after 120 seconds stop
     setTimeout(() => { 
         clearInterval(room.timerId); 
-        pauseGame(room.clients);
         room.clients.forEach(e => {
             e.sock.send(JSON.stringify({type: "chat", msg: room.wordToGuess + " was the word to guess!", name: "Game"}))
         })
         switchRoles(room);
+        pauseGame(room.clients);
     }, (counter + 1) * 1000);
 }
 

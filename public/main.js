@@ -74,8 +74,7 @@ ws.onmessage = async function(msg) {
 }
 
 function startGame() {
-    if (id == 1)
-        startStreaming();
+    document.getElementById("call-remote").disabled = false;
     gameStarted = true;
     document.getElementById("waiting-conn").hidden = true;
     timer.hidden = true;
